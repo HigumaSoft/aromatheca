@@ -1,0 +1,19 @@
+# Environment
+.env
+.env.local
+
+# Docker
+docker-compose.override.yml
+volumes/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
