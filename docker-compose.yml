@@ -17,5 +17,35 @@ services:
       timeout: 5s
       retries: 5
 
+  core:
+    build:
+      context: ./core
+      dockerfile: Dockerfile
+    container_name: aromatheca-core
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_PROFILES_ACTIVE: dev
+    ports:
+      - "${CORE_PORT:-8080}:8080"
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: aromatheca-web
+    restart: unless-stopped
+    depends_on:
+      - core
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:${CORE_PORT:-8080}
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+
 volumes:
   postgres_data:
