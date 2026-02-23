@@ -1,36 +1,110 @@
 # Aromatheca
 
-*From Greek **aroma** (fragrance) + Latin **bibliotheca** (library) - a library of scents.*
+Orchestration repository for the Aromatheca platform. Contains Docker Compose configuration for local development and production deployment.
 
-## What is this?
+## Repository Structure
 
-A fragrance enthusiast got frustrated with closed databases and missing APIs. As a developer, I decided to build what I wished existed: an open, accessible fragrance database that works the way enthusiasts actually need it to.
+```
+aromatheca/
+  core/                  # Submodule → aromatheca-api-core (Spring Boot)
+  web/                   # Submodule → aromatheca-web (Next.js)
+  docker-compose.yml     # Local development stack
+  docker-compose.prod.yml  # Production stack (coming soon)
+  .env.example           # Environment variable template
+```
 
-## The Idea
+## Prerequisites
 
-- **Open data**: Community-contributed fragrance information, publicly accessible
-- **Public API**: Build your own tools, apps, integrations
-- **Modern approach**: Better search, recommendations, real-world use cases (occasion, weather)
-- **Sustainable**: Free core database, future premium features for businesses (analytics, insights)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [Git](https://git-scm.com/)
 
-## Current Status
+## Local Setup
 
-🚧 **Early development** - Building MVP with core fragrance database and review system. Currently in private testing phase.
+### 1. Clone with submodules
 
-## Vision
+```bash
+git clone --recurse-submodules git@github.com:yourorg/aromatheca.git
+cd aromatheca
+```
 
-Create a community-owned fragrance database where:
-- Enthusiasts can freely access and contribute data
-- Developers can build on top via OpenAPI
-- The platform sustains itself through optional premium features
-- Data remains open, always
+If you already cloned without submodules:
 
-## Links
+```bash
+git submodule update --init --recursive
+```
 
-- 🌐 [aromatheca.com](https://aromatheca.com) | [aromatheca.net](https://aromatheca.net)
-- 📚 Documentation: Coming soon
-- 🔌 API: In development
+### 2. Configure environment
 
----
+```bash
+cp .env.example .env
+```
 
-**Note:** This is a personal project in early stages. Things will change, break, and evolve. If you're interested in contributing or following progress - watch this space.
+Edit `.env` and set a secure `POSTGRES_PASSWORD`.
+
+### 3. Start the stack
+
+**Full stack** (requires app code in submodules):
+
+```bash
+docker compose up
+```
+
+**Database only** (for early development):
+
+```bash
+docker compose up postgres
+```
+
+### 4. Verify services
+
+| Service  | URL                          |
+|----------|------------------------------|
+| Frontend | http://localhost:3000        |
+| Backend  | http://localhost:8080        |
+| Database | localhost:5432               |
+
+### 5. Stop the stack
+
+```bash
+docker compose down
+```
+
+To also remove the database volume:
+
+```bash
+docker compose down -v
+```
+
+## Updating Submodules
+
+Pull latest from all submodules:
+
+```bash
+git submodule update --remote --merge
+```
+
+Update only the backend:
+
+```bash
+git submodule update --remote --merge core
+```
+
+After updating, commit the new pointer:
+
+```bash
+git add core
+git commit -m "chore: update core to latest"
+```
+
+## Environment Variables
+
+See `.env.example` for all available variables and their defaults.
+
+| Variable            | Description                  | Default         |
+|---------------------|------------------------------|-----------------|
+| `POSTGRES_DB`       | Database name                | aromatheca      |
+| `POSTGRES_USER`     | Database user                | aromatheca_user |
+| `POSTGRES_PASSWORD` | Database password            | **change this** |
+| `POSTGRES_PORT`     | Database port                | 5432            |
+| `CORE_PORT`         | Backend port                 | 8080            |
+| `WEB_PORT`          | Frontend port                | 3000            |

@@ -33,6 +33,12 @@ services:
       SPRING_PROFILES_ACTIVE: dev
     ports:
       - "${CORE_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   web:
     build:
@@ -41,11 +47,18 @@ services:
     container_name: aromatheca-web
     restart: unless-stopped
     depends_on:
-      - core
+      core:
+        condition: service_healthy
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:${CORE_PORT:-8080}
     ports:
       - "${WEB_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
 volumes:
   postgres_data:
