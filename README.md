@@ -1,16 +1,24 @@
 # Aromatheca
 
-Orchestration repository for the Aromatheca platform. Contains Docker Compose configuration for local development and production deployment.
+Open-source community-driven fragrance database. Browse fragrances, brands, notes, perfumers, and community ratings.
+
+**Links**
+- [API Reference](https://higumasoft.github.io/aromatheca/api/)
+- [Project Site](https://higumasoft.github.io/aromatheca/)
+
+---
 
 ## Repository Structure
 
 ```
 aromatheca/
-  core/                  # Submodule → aromatheca-api-core (Spring Boot)
-  web/                   # Submodule → aromatheca-web (Next.js)
-  docker-compose.yml     # Local development stack
+  core/                    # Submodule -> aromatheca-api-core (Spring Boot)
+  web/                     # Submodule -> aromatheca-web (Next.js)
+  docs/                    # Submodule -> aromatheca-docs (API spec, schemas)
+  pages/                   # GitHub Pages (project site + API reference)
+  docker-compose.yml       # Local development stack
   docker-compose.prod.yml  # Production stack (coming soon)
-  .env.example           # Environment variable template
+  .env.example             # Environment variable template
 ```
 
 ## Prerequisites
@@ -23,7 +31,7 @@ aromatheca/
 ### 1. Clone with submodules
 
 ```bash
-git clone --recurse-submodules git@github.com:yourorg/aromatheca.git
+git clone --recurse-submodules git@github.com:HigumaSoft/aromatheca.git
 cd aromatheca
 ```
 
@@ -57,11 +65,11 @@ docker compose up postgres
 
 ### 4. Verify services
 
-| Service  | URL                          |
-|----------|------------------------------|
-| Frontend | http://localhost:3000        |
-| Backend  | http://localhost:8080        |
-| Database | localhost:5432               |
+| Service  | URL                   |
+|----------|-----------------------|
+| Frontend | http://localhost:3000 |
+| Backend  | http://localhost:8080 |
+| Database | localhost:5432        |
 
 ### 5. Stop the stack
 
@@ -100,11 +108,11 @@ git commit -m "chore: update core to latest"
 
 See `.env.example` for all available variables and their defaults.
 
-| Variable            | Description                  | Default         |
-|---------------------|------------------------------|-----------------|
-| `POSTGRES_DB`       | Database name                | aromatheca      |
-| `POSTGRES_USER`     | Database user                | aromatheca_user |
-| `POSTGRES_PASSWORD` | Database password            | **change this** |
-| `POSTGRES_PORT`     | Database port                | 5432            |
-| `CORE_PORT`         | Backend port                 | 8080            |
-| `WEB_PORT`          | Frontend port                | 3000            |
+| Variable            | Description       | Default         |
+|---------------------|-------------------|-----------------|
+| `POSTGRES_DB`       | Database name     | aromatheca      |
+| `POSTGRES_USER`     | Database user     | aromatheca_user |
+| `POSTGRES_PASSWORD` | Database password | **change this** |
+| `POSTGRES_PORT`     | Database port     | 5432            |
+| `CORE_PORT`         | Backend port      | 8080            |
+| `WEB_PORT`          | Frontend port     | 3000            |
