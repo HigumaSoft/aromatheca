@@ -32,11 +32,17 @@ jobs:
               with:
                   submodules: false
 
-            - name: Checkout docs submodule only
+            - name: Setup SSH for docs submodule
+              uses: webfactory/ssh-agent@v0.9.0
+              with:
+                  ssh-private-key: ${{ secrets.DOCS_DEPLOY_KEY }}
+
+            - name: Override submodule URL to use SSH
               run: |
-                  eval $(ssh-agent -s)
-                  ssh-add - <<< "${{ secrets.DOCS_DEPLOY_KEY }}"
-                  git submodule update --init --depth=1 docs
+                  git config --global url."git@github.com:HigumaSoft/aromatheca-docs.git".insteadOf "https://github.com/HigumaSoft/aromatheca-docs.git"
+
+            - name: Checkout docs submodule only
+              run: git submodule update --init --depth=1 docs
 
             - name: Copy core-api.yaml into pages/api
               run: cp docs/api/core-api.yaml pages/api/core-api.yaml
