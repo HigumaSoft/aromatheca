@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Aromatheca — Open Fragrance Database</title>
+  <meta name="description" content="Open-source community-driven fragrance database." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --ink: #1a1410;
+      --paper: #f5f0e8;
+      --warm: #c8a97e;
+      --muted: #8a7d6e;
+      --accent: #6b3d2e;
+      --line: rgba(26,20,16,0.12);
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'DM Mono', monospace;
+      font-weight: 300;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 100;
+      opacity: 0.4;
+    }
+    .container { max-width: 860px; margin: 0 auto; padding: 0 2rem; }
+    header {
+      padding: 3rem 0 2rem;
+      border-bottom: 1px solid var(--line);
+      opacity: 0;
+      animation: fadeUp 0.8s ease forwards;
+    }
+    .header-inner {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .wordmark {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: clamp(2rem, 5vw, 3rem);
+      letter-spacing: 0.08em;
+      color: var(--ink);
+      text-decoration: none;
+    }
+    .wordmark em { font-style: italic; color: var(--accent); }
+    .version-tag {
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      padding: 0.25rem 0.6rem;
+    }
+    .hero {
+      padding: 5rem 0 4rem;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.15s forwards;
+    }
+    .hero-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: clamp(2.2rem, 6vw, 4rem);
+      line-height: 1.15;
+      color: var(--ink);
+      max-width: 640px;
+      margin-bottom: 2rem;
+    }
+    .hero-title em { font-style: italic; color: var(--accent); }
+    .hero-desc {
+      font-size: 0.8rem;
+      line-height: 1.9;
+      color: var(--muted);
+      max-width: 520px;
+      margin-bottom: 3rem;
+    }
+    .actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 400;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-decoration: none;
+      padding: 0.75rem 1.5rem;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .btn-primary { background: var(--ink); color: var(--paper); border: 1px solid var(--ink); }
+    .btn-primary:hover { background: var(--accent); border-color: var(--accent); }
+    .btn-secondary { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+    .btn-secondary:hover { border-color: var(--ink); }
+    .section-divider { border: none; border-top: 1px solid var(--line); margin: 0; }
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0;
+      border-bottom: 1px solid var(--line);
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.3s forwards;
+    }
+    .info-cell { padding: 2.5rem 0; border-right: 1px solid var(--line); }
+    .info-cell:last-child { border-right: none; }
+    .info-cell + .info-cell { padding-left: 2rem; }
+    .info-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+    .info-value { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--ink); line-height: 1.5; }
+    .feedback {
+      padding: 4rem 0;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.45s forwards;
+    }
+    .feedback-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; }
+    @media (max-width: 600px) { .feedback-inner { grid-template-columns: 1fr; gap: 2rem; } }
+    .section-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+    .feedback-title { font-family: 'Cormorant Garamond', serif; font-weight: 300; font-size: 1.8rem; line-height: 1.3; margin-bottom: 1rem; }
+    .feedback-title em { font-style: italic; color: var(--accent); }
+    .feedback-desc { font-size: 0.75rem; line-height: 1.9; color: var(--muted); margin-bottom: 2rem; }
+    .feedback-items { list-style: none; display: flex; flex-direction: column; gap: 1rem; }
+    .feedback-item { display: flex; gap: 1rem; align-items: flex-start; }
+    .feedback-item-num { font-size: 0.6rem; color: var(--warm); padding-top: 0.1rem; flex-shrink: 0; }
+    .feedback-item-text { font-size: 0.75rem; line-height: 1.7; color: var(--muted); }
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 2rem 0;
+      opacity: 0;
+      animation: fadeUp 0.8s ease 0.6s forwards;
+    }
+    .footer-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .footer-copy { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.05em; }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a { font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--ink); }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="header-inner">
+        <a href="/" class="wordmark">aroma<em>theca</em></a>
+        <span class="version-tag">v0.1.0 — alpha</span>
+      </div>
+    </header>
+
+    <section class="hero">
+      <p class="hero-label">Open Fragrance Database</p>
+      <h1 class="hero-title">A community-driven<br /><em>library of scent</em></h1>
+      <p class="hero-desc">
+        Aromatheca is an open-source database of fragrances, brands, notes, and perfumers —
+        built for collectors, enthusiasts, and developers. Community-rated, freely accessible,
+        openly licensed.
+      </p>
+      <div class="actions">
+        <a href="/aromatheca/api/" class="btn btn-primary">API Reference &rarr;</a>
+        <a href="https://github.com/HigumaSoft/aromatheca" class="btn btn-secondary" target="_blank" rel="noopener">GitHub &nearr;</a>
+      </div>
+    </section>
+
+    <hr class="section-divider" />
+
+    <div class="info-grid">
+      <div class="info-cell">
+        <p class="info-label">License</p>
+        <p class="info-value">CC BY 4.0<br />Data is freely shareable</p>
+      </div>
+      <div class="info-cell">
+        <p class="info-label">Status</p>
+        <p class="info-value">Phase 0.x &mdash; MVP<br />Single admin, early data</p>
+      </div>
+      <div class="info-cell">
+        <p class="info-label">API</p>
+        <p class="info-value">REST / JSON<br />OpenAPI 3.0 spec</p>
+      </div>
+    </div>
+
+    <section class="feedback">
+      <div class="feedback-inner">
+        <div>
+          <p class="section-label">Community</p>
+          <h2 class="feedback-title">Found something<br /><em>missing or wrong?</em></h2>
+          <p class="feedback-desc">
+            Aromatheca is in early development. Data may be incomplete,
+            incorrect, or missing entirely. We welcome reports from the community &mdash;
+            every correction helps build a better resource for everyone.
+          </p>
+          <a
+            href="https://github.com/HigumaSoft/aromatheca/issues/new?labels=data-feedback&title=[Feedback]+"
+            class="btn btn-primary"
+            target="_blank"
+            rel="noopener"
+          >Report via GitHub Issues &rarr;</a>
+        </div>
+        <div>
+          <p class="section-label">What to report</p>
+          <ul class="feedback-items">
+            <li class="feedback-item">
+              <span class="feedback-item-num">01</span>
+              <span class="feedback-item-text">Incorrect fragrance data &mdash; wrong notes, concentration, release year</span>
+            </li>
+            <li class="feedback-item">
+              <span class="feedback-item-num">02</span>
+              <span class="feedback-item-text">Missing brands, perfumers, or fragrances</span>
+            </li>
+            <li class="feedback-item">
+              <span class="feedback-item-num">03</span>
+              <span class="feedback-item-text">API errors or unexpected behaviour</span>
+            </li>
+            <li class="feedback-item">
+              <span class="feedback-item-num">04</span>
+              <span class="feedback-item-text">Suggestions for new features or data fields</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <div class="footer-inner">
+        <span class="footer-copy">&copy; 2026 Aromatheca &mdash; CC BY 4.0</span>
+        <nav class="footer-links">
+          <a href="/aromatheca/api/">API Docs</a>
+          <a href="https://github.com/HigumaSoft/aromatheca" target="_blank" rel="noopener">GitHub</a>
+          <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">License</a>
+        </nav>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>
