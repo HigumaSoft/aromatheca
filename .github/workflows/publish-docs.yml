@@ -1,49 +1,54 @@
 name: Publish API Docs
 
 on:
-  push:
-    branches:
-      - master
-    paths:
-      - 'pages/**'
-      - 'docs/api/**'
-  workflow_dispatch:
+    push:
+        branches:
+            - master
+        paths:
+            - "pages/**"
+            - "docs/api/**"
+    workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+    contents: read
+    pages: write
+    id-token: write
 
 concurrency:
-  group: pages
-  cancel-in-progress: false
+    group: pages
+    cancel-in-progress: false
 
 jobs:
-  deploy:
-    name: Deploy to GitHub Pages
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    deploy:
+        name: Deploy to GitHub Pages
+        runs-on: ubuntu-latest
+        environment:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
 
-    steps:
-      - name: Checkout aromatheca with submodules
-        uses: actions/checkout@v4
-        with:
-          ssh-key: ${{ secrets.DOCS_DEPLOY_KEY }}
-          submodules: true
+        steps:
+            - name: Checkout aromatheca
+              uses: actions/checkout@v4
+              with:
+                  submodules: false
 
-      - name: Copy core-api.yaml into pages/api
-        run: cp docs/api/core-api.yaml pages/api/core-api.yaml
+            - name: Checkout docs submodule only
+              run: |
+                  eval $(ssh-agent -s)
+                  ssh-add - <<< "${{ secrets.DOCS_DEPLOY_KEY }}"
+                  git submodule update --init --depth=1 docs
 
-      - name: Setup GitHub Pages
-        uses: actions/configure-pages@v4
+            - name: Copy core-api.yaml into pages/api
+              run: cp docs/api/core-api.yaml pages/api/core-api.yaml
 
-      - name: Upload pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: pages/
+            - name: Setup GitHub Pages
+              uses: actions/configure-pages@v4
 
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+            - name: Upload pages artifact
+              uses: actions/upload-pages-artifact@v3
+              with:
+                  path: pages/
+
+            - name: Deploy to GitHub Pages
+              id: deployment
+              uses: actions/deploy-pages@v4
