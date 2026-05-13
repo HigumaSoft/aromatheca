@@ -11,10 +11,6 @@ volumes/
 .idea/
 *.swp
 
-# Local agents
-.claude/
-.codex/
-
 # OS
 .DS_Store
 Thumbs.db
