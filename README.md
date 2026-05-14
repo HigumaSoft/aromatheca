@@ -5,6 +5,7 @@ Open-source community-driven fragrance database. Browse fragrances, brands, note
 **Links**
 
 - [API Reference](https://higumasoft.github.io/aromatheca/api/)
+- [API Getting Started](./docs/api/GETTING-STARTED.md) — for developers consuming the API
 - [Project Site](https://higumasoft.github.io/aromatheca/)
 
 ---
@@ -135,5 +136,4 @@ See `.env.example` for all available variables and their defaults.
 | `POSTGRES_USER`     | Database user     | aromatheca_user |
 | `POSTGRES_PASSWORD` | Database password | **change this** |
 | `POSTGRES_PORT`     | Database port     | 5432            |
-| `CORE_PORT`         | Backend port      | 8080            |
-| `WEB_PORT`          | Frontend port     | 3000            |
+| `CORE_PORT`         | Backend p
