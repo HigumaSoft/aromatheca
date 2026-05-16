@@ -1,5 +1,8 @@
 # Aromatheca
 
+[![Integration](https://github.com/HigumaSoft/aromatheca/actions/workflows/integration.yml/badge.svg)](https://github.com/HigumaSoft/aromatheca/actions/workflows/integration.yml)
+[![Publish Docs](https://github.com/HigumaSoft/aromatheca/actions/workflows/publish-docs.yml/badge.svg)](https://github.com/HigumaSoft/aromatheca/actions/workflows/publish-docs.yml)
+
 Open-source community-driven fragrance database. Browse fragrances, brands, notes, perfumers, and community ratings.
 
 **Links**
@@ -130,10 +133,4 @@ git commit -m "chore: update core to latest"
 
 See `.env.example` for all available variables and their defaults.
 
-| Variable            | Description       | Default         |
-| ------------------- | ----------------- | --------------- |
-| `POSTGRES_DB`       | Database name     | aromatheca      |
-| `POSTGRES_USER`     | Database user     | aromatheca_user |
-| `POSTGRES_PASSWORD` | Database password | **change this** |
-| `POSTGRES_PORT`     | Database port     | 5432            |
-| `CORE_PORT`         | Backend p
+| Variable            | Description       | De

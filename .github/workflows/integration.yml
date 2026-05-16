@@ -1,0 +1,108 @@
+name: Integration
+
+# Orchestrator-level smoke test: verifies that the pinned submodule SHAs
+# (core/web/docs) actually compose together via docker-compose and answer
+# health endpoints. Deeper functional e2e lives in the future
+# aromatheca-e2e repo per ADR-0003.
+#
+# See: docs/architecture/adr/0003-ci-strategy.md
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  schedule:
+    # Nightly drift catch at 06:00 UTC — catches submodule SHA mismatches
+    # introduced by direct child pushes that bypass the parent.
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # Allow nightly + push to coexist on different refs but cancel duplicate
+  # in-flight runs on the same ref.
+  group: integration-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compose-smoke:
+    name: docker compose smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout with submodules at pinned SHAs
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          # We deliberately do NOT --remote update submodules. The point is
+          # to test the SHAs the parent currently pins.
+          fetch-depth: 1
+
+      - name: Seed .env from .env.example
+        run: cp .env.example .env
+
+      - name: Show stack metadata
+        run: |
+          echo "::group::git describe (parent)"
+          git rev-parse --short HEAD
+          echo "::endgroup::"
+          echo "::group::submodule SHAs"
+          git submodule status
+          echo "::endgroup::"
+          echo "::group::docker compose config"
+          docker compose config --quiet && echo "compose config OK"
+          echo "::endgroup::"
+
+      - name: Build & start stack
+        run: docker compose up -d --build
+
+      - name: Wait for backend health (timeout 90s)
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8080/actuator/health >/dev/null 2>&1; then
+              echo "backend healthy after ${i} attempt(s)"
+              break
+            fi
+            echo "waiting for backend... ($i)"
+            sleep 3
+          done
+          curl -fsS http://localhost:8080/actuator/health
+
+      - name: Wait for frontend (timeout 90s)
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS -o /dev/null http://localhost:3000/; then
+              echo "frontend healthy after ${i} attempt(s)"
+              break
+            fi
+            echo "waiting for frontend... ($i)"
+            sleep 3
+          done
+          curl -fsS -o /dev/null -w 'frontend status: %{http_code}\n' http://localhost:3000/
+
+      - name: Smoke-check public API
+        run: |
+          # Hit the nginx gateway (single-entry-point) — verifies the full
+          # reverse-proxy → backend path, not just the bare backend.
+          curl -fsS "http://localhost:8090/api/v1/fragrances?page=0&size=1" | head -c 500
+          echo
+
+      - name: Dump compose logs on failure
+        if: failure()
+        run: docker compose logs --no-color > stack.log || true
+
+      - name: Upload compose logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stack-logs-${{ github.run_id }}
+          path: stack.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
