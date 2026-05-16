@@ -133,4 +133,10 @@ git commit -m "chore: update core to latest"
 
 See `.env.example` for all available variables and their defaults.
 
-| Variable            | Description       | De
+| Variable            | Description       | Default         |
+| ------------------- | ----------------- | --------------- |
+| `POSTGRES_DB`       | Database name     | aromatheca      |
+| `POSTGRES_USER`     | Database user     | aromatheca_user |
+| `POSTGRES_PASSWORD` | Database password | **change this** |
+| `POSTGRES_PORT`     | Database port     | 5432            |
+| `CORE_PORT`         | Backend p
