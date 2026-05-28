@@ -40,6 +40,9 @@ jobs:
           # We deliberately do NOT --remote update submodules. The point is
           # to test the SHAs the parent currently pins.
           fetch-depth: 1
+          # PAT required because the submodule repos are private and the
+          # default GITHUB_TOKEN only has access to the parent repo.
+          token: ${{ secrets.SUBMODULE_PAT }}
 
       - name: Seed .env from .env.example
         run: cp .env.example .env

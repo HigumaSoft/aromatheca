@@ -26,11 +26,20 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       SPRING_PROFILES_ACTIVE: dev
+      JWT_SECRET: ${JWT_SECRET}
+      R2_ENDPOINT: http://minio:9000
+      R2_REGION: auto
+      R2_BUCKET: aromatheca-assets
+      R2_PUBLIC_HOST: http://localhost:${MINIO_PORT:-9000}/aromatheca-assets
+      R2_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
+      R2_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
     ports:
       - "${CORE_PORT:-8080}:8080"
     healthcheck:
@@ -50,7 +59,11 @@ services:
       core:
         condition: service_healthy
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost/api
+      # Server-only vars — read at runtime by Next.js SSR, not inlined at build time.
+      # Point directly to the core container so SSR fetches work inside Docker.
+      PUBLIC_API_URL: http://core:8080/v1
+      APP_API_URL: http://core:8080/app/v1
+      ADMIN_API_URL: http://core:8080/admin/v1
     ports:
       - "${WEB_PORT:-3000}:3000"
     healthcheck:
