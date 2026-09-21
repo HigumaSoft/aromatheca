@@ -6,8 +6,11 @@
 docker-compose.override.yml
 volumes/
 
-# IDE
+# AI draft workspace (local only, see docs/ai/pipeline.md)
 .codex/
+.claude/settings.local.json
+
+# IDE
 .vscode/
 .idea/
 *.swp
