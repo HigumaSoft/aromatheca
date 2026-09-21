@@ -1,3 +1,6 @@
+# Data services only. Application services (API, web) were removed with the
+# September 2026 relaunch (docs: planning/decisions.md D-0021); they return
+# here when the code is re-planned.
 services:
   postgres:
     image: postgres:15-alpine
@@ -16,78 +19,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-  core:
-    build:
-      context: ./core
-      dockerfile: Dockerfile
-    container_name: aromatheca-core
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-      minio-init:
-        condition: service_completed_successfully
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
-      SPRING_PROFILES_ACTIVE: dev
-      JWT_SECRET: ${JWT_SECRET}
-      R2_ENDPOINT: http://minio:9000
-      R2_REGION: auto
-      R2_BUCKET: aromatheca-assets
-      R2_PUBLIC_HOST: http://localhost:${MINIO_PORT:-9000}/aromatheca-assets
-      R2_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minioadmin}
-      R2_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin}
-    ports:
-      - "${CORE_PORT:-8080}:8080"
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
-
-  web:
-    build:
-      context: ./web
-      dockerfile: Dockerfile
-    container_name: aromatheca-web
-    restart: unless-stopped
-    depends_on:
-      core:
-        condition: service_healthy
-    environment:
-      # Server-only vars — read at runtime by Next.js SSR, not inlined at build time.
-      # Point directly to the core container so SSR fetches work inside Docker.
-      PUBLIC_API_URL: http://core:8080/v1
-      APP_API_URL: http://core:8080/app/v1
-      ADMIN_API_URL: http://core:8080/admin/v1
-    ports:
-      - "${WEB_PORT:-3000}:3000"
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3000 || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
-
-  nginx:
-    image: nginx:1.25-alpine
-    container_name: aromatheca-nginx
-    restart: unless-stopped
-    env_file:
-      - nginx/local.env
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/templates/default.conf.template:ro
-    ports:
-      - "8090:80"
-    command: >
-      /bin/sh -c "envsubst '$$BACKEND_HOST $$BACKEND_PORT $$FRONTEND_HOST $$FRONTEND_PORT'
-      < /etc/nginx/templates/default.conf.template
-      > /etc/nginx/conf.d/default.conf
-      && nginx -g 'daemon off;'"
 
   minio:
     image: minio/minio:RELEASE.2024-12-18T13-15-44Z

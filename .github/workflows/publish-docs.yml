@@ -44,8 +44,8 @@ jobs:
             - name: Checkout docs submodule only
               run: git submodule update --init --depth=1 docs
 
-            - name: Copy core-api.yaml into pages/api
-              run: cp docs/api/core-api.yaml pages/api/core-api.yaml
+            - name: Copy OpenAPI specs into pages/api
+              run: cp docs/api/public-api.yaml pages/api/public-api.yaml
 
             - name: Setup GitHub Pages
               uses: actions/configure-pages@v4

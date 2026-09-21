@@ -1,142 +1,55 @@
 # Aromatheca
 
-[![Integration](https://github.com/HigumaSoft/aromatheca/actions/workflows/integration.yml/badge.svg)](https://github.com/HigumaSoft/aromatheca/actions/workflows/integration.yml)
 [![Publish Docs](https://github.com/HigumaSoft/aromatheca/actions/workflows/publish-docs.yml/badge.svg)](https://github.com/HigumaSoft/aromatheca/actions/workflows/publish-docs.yml)
 
-Open-source community-driven fragrance database. Browse fragrances, brands, notes, perfumers, and community ratings.
+Open-source fragrance data platform: a structured database of fragrances, brands, notes, perfumers and community ratings, with a public read-only API.
 
 **Links**
 
-- [API Reference](https://higumasoft.github.io/aromatheca/api/)
-- [API Getting Started](./docs/api/GETTING-STARTED.md) — for developers consuming the API
-- [Project Site](https://higumasoft.github.io/aromatheca/)
+- [Project site](https://higumasoft.github.io/aromatheca/)
+- [Public API reference](https://higumasoft.github.io/aromatheca/api/)
 
----
+> **September 2026 — relaunch in progress.** The project is being rebuilt documentation-first. The application code repos ([api-core](https://github.com/HigumaSoft/aromatheca-api-core), [web](https://github.com/HigumaSoft/aromatheca-web)) are archived history and no longer submodules; their future is decided as part of the relaunch.
 
-## Repository Structure
+## Repository structure
 
 ```
 aromatheca/
-  core/                    # Submodule -> aromatheca-api-core (Spring Boot)
-  web/                     # Submodule -> aromatheca-web (Next.js)
-  docs/                    # Submodule -> aromatheca-docs (API spec, schemas)
-  pages/                   # GitHub Pages (project site + API reference)
-  nginx/                   # Nginx reverse proxy config (local + prod)
-  docker-compose.yml       # Local development stack
-  docker-compose.prod.yml  # Production stack (coming soon)
-  .env.example             # Environment variable template
+  docs/                 # Submodule -> aromatheca-docs (private): specs, ADRs, plans, decisions, AI rules
+  pages/                # GitHub Pages: project site + API reference (Scalar)
+  docker-compose.yml    # Local data services only: PostgreSQL + MinIO
+  .env.example          # Environment template for the data services
+  AGENTS.md, CLAUDE.md  # Pointers to the rules in docs/ for AI agents
+  .github/workflows/    # publish-docs.yml — deploys pages/ + public API spec
 ```
 
-## Prerequisites
-
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-- [Git](https://git-scm.com/)
-
-## Local Setup
-
-### 1. Clone with submodules
+## Local data services
 
 ```bash
-git clone --recurse-submodules git@github.com:HigumaSoft/aromatheca.git
+git clone --recurse-submodules git@github.com:HigumaSoft/aromatheca.git   # docs/ needs private-repo access
 cd aromatheca
+cp .env.example .env            # set POSTGRES_PASSWORD
+docker compose up -d            # postgres :5432, minio :9000 (console :9001)
+docker compose down             # add -v to drop volumes
 ```
 
-If you already cloned without submodules:
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `POSTGRES_DB` / `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_PORT` | `aromatheca` / `aromatheca_user` / — / `5432` | PostgreSQL |
+| `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD` / `MINIO_PORT` / `MINIO_CONSOLE_PORT` | `minioadmin` / `minioadmin` / `9000` / `9001` | MinIO (S3-compatible local store, bucket `aromatheca-assets`) |
+
+## GitHub Pages
+
+`pages/` is deployed by [`publish-docs.yml`](.github/workflows/publish-docs.yml) on every push to `master` that touches `pages/` or `docs/api/`. The workflow checks out the private `docs` submodule with a deploy key and copies `docs/api/public-api.yaml` next to `pages/api/index.html`.
+
+## Updating the docs pointer
 
 ```bash
-git submodule update --init --recursive
+git submodule update --remote --merge docs
+git add docs
+git commit -m "chore: bump docs to $(git -C docs rev-parse --short HEAD)"
 ```
 
-### 2. Configure environment
+## How we work
 
-```bash
-cp .env.example .env
-```
-
-Edit `.env` and set a secure `POSTGRES_PASSWORD`.
-
-### 3. Start the stack
-
-**Full stack** (requires app code in submodules):
-
-```bash
-docker compose up
-```
-
-**Database only** (for early development):
-
-```bash
-docker compose up postgres
-```
-
-### Local Development with Nginx Proxy
-
-Start nginx and postgres only, then run backend and frontend on host:
-
-```bash
-docker compose up nginx postgres
-```
-
-| URL                        | Routes to                  |
-| -------------------------- | -------------------------- |
-| http://localhost:8090      | nginx (single entry point) |
-| http://localhost:8090/api/ | Spring Boot backend        |
-| http://localhost:8090/     | Next.js frontend           |
-| http://localhost:8080      | Backend direct             |
-| http://localhost:3000      | Frontend direct            |
-
-This eliminates CORS issues during development — browser sees one origin.
-
-### 4. Verify services
-
-| Service  | URL                   |
-| -------- | --------------------- |
-| Frontend | http://localhost:3000 |
-| Backend  | http://localhost:8080 |
-| Database | http://localhost:5432 |
-| Gateway  | http://localhost:8090 |
-
-### 5. Stop the stack
-
-```bash
-docker compose down
-```
-
-To also remove the database volume:
-
-```bash
-docker compose down -v
-```
-
-## Updating Submodules
-
-Pull latest from all submodules:
-
-```bash
-git submodule update --remote --merge
-```
-
-Update only the backend:
-
-```bash
-git submodule update --remote --merge core
-```
-
-After updating, commit the new pointer:
-
-```bash
-git add core
-git commit -m "chore: update core to latest"
-```
-
-## Environment Variables
-
-See `.env.example` for all available variables and their defaults.
-
-| Variable            | Description       | Default         |
-| ------------------- | ----------------- | --------------- |
-| `POSTGRES_DB`       | Database name     | aromatheca      |
-| `POSTGRES_USER`     | Database user     | aromatheca_user |
-| `POSTGRES_PASSWORD` | Database password | **change this** |
-| `POSTGRES_PORT`     | Database port     | 5432            |
-| `CORE_PORT`         | Backend p
+Every document and feature goes through a plan → critique → revise → tickets → execute → review → merge+document loop run by AI agents with the owner approving at each gate. The rules, roles, templates and prompts are in the private docs repo (`docs/AGENTS.md`, `docs/ai/pipeline.md`). Drafts live in a local, gitignored `.codex/` workspace and never reach GitHub.
