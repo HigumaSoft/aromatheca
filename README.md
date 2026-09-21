@@ -2,7 +2,7 @@
 
 [![Publish Docs](https://github.com/HigumaSoft/aromatheca/actions/workflows/publish-docs.yml/badge.svg)](https://github.com/HigumaSoft/aromatheca/actions/workflows/publish-docs.yml)
 
-Open-source fragrance data platform: a structured database of fragrances, brands, notes, perfumers and community ratings, with a public read-only API.
+Aromatheca is an open, tech-friendly fragrance data platform: a structured database of fragrances, brands, notes, perfumers and community ratings, exposed through a public API and an MCP connector for AI agents, alongside a web application for discovery. The project is currently in development — see the relaunch note below.
 
 **Links**
 
