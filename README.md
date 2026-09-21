@@ -52,4 +52,4 @@ git commit -m "chore: bump docs to $(git -C docs rev-parse --short HEAD)"
 
 ## How we work
 
-Every document and feature goes through a plan → critique → revise → tickets → execute → review → merge+document loop run by AI agents with the owner approving at each gate. The rules, roles, templates and prompts are in the private docs repo (`docs/AGENTS.md`, `docs/ai/pipeline.md`). Drafts live in a local, gitignored `.codex/` workspace and never reach GitHub.
+Every document and feature goes through a plan → critique → revise → tickets → execute → review → merge+document loop run by AI agents with the owner approving at each gate. The rules, roles, templates and prompts are in the private docs repo (`docs/AGENTS.md`, `docs/ai/pipeline.md`). Drafts live in a local, gitignored `drafts/` workspace and never reach GitHub.
